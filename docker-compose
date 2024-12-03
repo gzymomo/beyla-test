@@ -1,0 +1,71 @@
+version: "3.8"
+
+services:
+  # Service to instrument. Change it to any
+  # other container that you want to instrument.
+  beyla-test-app:
+    image: beyla-test-app:0.8
+    ports:
+      # Exposes port 18843, forwarding it to container port 8443
+      - "8080:8080"
+    networks:
+      - monitoring
+
+  beyla:
+    image: grafana/beyla:latest
+    ports:
+      - "8081:8081"
+    privileged: true
+    pid: "service:beyla-test-app"
+    environment:
+      BEYLA_CONFIG_PATH: /opt/app-root/beyla.yaml
+      # BEYLA_TRACE_PRINTER: text
+      BEYLA_OPEN_PORT: 8080
+      # BEYLA_PROMETHEUS_PORT: 8081
+      # PRINT_TRACES: true
+    volumes:
+      - ./config/beyla:/opt/app-root:ro
+    networks:
+      - monitoring
+
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - --web.enable-lifecycle
+      - --config.file=/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    volumes:
+      - ./config/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./config/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+
+
+volumes:
+  prometheus_data:
+
+networks:
+  monitoring:
+    driver: bridge
+
+
+
+
+
+

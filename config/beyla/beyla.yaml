@@ -1,0 +1,13 @@
+open_port: 8080
+service_name: beyla-test
+service_namespace: test-ns
+log_level: DEBUG
+trace_printer: text
+
+# otel_traces_export:
+#   endpoint: https://otlp-gateway-prod-eu-west-0.grafana.net/otlp
+
+prometheus_export:
+  port: 8081
+
+allow_service_graph_self_references: true

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app: beyla
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: apps.deployment-default-beylatest
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        app: beyla
+      labels:
+        app: beyla
+        workload.user.cattle.io/workloadselector: apps.deployment-default-beylatest
+    spec:
+      containers:
+      - image: beyla-test-app:0.7
+        imagePullPolicy: IfNotPresent
+        name: beyla-test-app
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+      - env:
+        - name: PRINT_TRACES
+          value: "true"
+        - name: BEYLA_PROMETHEUS_PORT
+          value: "8081"
+        - name: BEYLA_TRACE_PRINTER
+          value: text
+        - name: BEYLA_OPEN_PORT
+          value: "8080"
+        image: grafana/beyla:latest
+        imagePullPolicy: IfNotPresent
+        name: beyla
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities: {}
+          privileged: true
+          readOnlyRootFilesystem: false
+      shareProcessNamespace: true

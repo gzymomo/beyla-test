@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s  # 默认抓取间隔
+  evaluation_interval: 15s  # 默认规则评估间隔
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'beyla'
+    static_configs:
+      - targets: ['beyla:8081']
